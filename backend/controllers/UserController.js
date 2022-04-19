@@ -112,6 +112,7 @@ module.exports = class UserController {
             res.status(422).json({
                 message: 'Senha inválida!'
             })
+            return
         }
 
         await createUserToken(user, req, res)
@@ -175,6 +176,7 @@ module.exports = class UserController {
             res.status(422).json({message: 'O nome é obrigatório!'})
             return
         }
+        user.name = name
 
         if(!email) {
             res.status(422).json({message: 'O e-mail é obrigatório!'})
@@ -190,28 +192,44 @@ module.exports = class UserController {
             })
             return
         }
+        user.email = email
 
         if(!phone) {
             res.status(422).json({message: 'O telefone é obrigatório!'})
             return
         }
-
-        if(!password) {
-            res.status(422).json({message: 'A senha é obrigatória!'})
-            return
-        }
-
-        if(!confirmpassword) {
-            res.status(422).json({message: 'A confirmação de seha é obrigatória!'})
-            return
-        }
+        user.phone = phone
 
         if(password !== confirmpassword) {
-            res.status(422).json({message: 'A senha e a confirmação de senha precisam ser iguais!'})
+            res.status(422).json({message: 'As senhas não conferem!'})
             return
+        } else if( password === confirmpassword && password != null) {
+            
+            // creating password
+            const salt = await bcrypt.genSalt(12)
+            const passwordHash = await bcrypt.hash(password, salt)
+
+            user.password = passwordHash
         }
         
         
+        try  {
+
+            // returns user updated data
+            await User.findOneAndUpdate(
+                { _id: user._id },
+                { $set: user },
+                { new: true }
+            )
+
+            res.status(201).json({
+                message: "Usuário atualizado com sucesso!"
+            })
+
+        } catch (err) {
+            res.status(500).json({ message: err })
+            return
+        }
 
        
 
