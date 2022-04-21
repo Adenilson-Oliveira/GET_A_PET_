@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken')
-const { rawListeners } = require('../models/User')
 const getToken = require('./get-token')
 
 // middleware to validate token
